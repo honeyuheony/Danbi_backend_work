@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # Secret JSON 불러오기
-SECRET_FILE = os.path.join(BASE_DIR, 'mlcc_be/secrets.json')
+SECRET_FILE = os.path.join(BASE_DIR, 'danbi_wink/secrets.json')
 with open(SECRET_FILE) as token:
     secrets = json.loads(token.read())
 
@@ -52,6 +52,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # rest-framework
+    'rest_framework',
+    'routine.apps.RoutineConfig',
+    'account.apps.AccountConfig',
 ]
 
 MIDDLEWARE = [
