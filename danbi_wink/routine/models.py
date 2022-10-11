@@ -4,10 +4,8 @@ from account.models import User
 # Create your models here.
 class Routine(models.Model):
     routine_type = (('MIRACLE', 'MIRACLE'), ('HOMEWORK', 'HOMEWORK'))
-
     routine_id = models.AutoField(unique=True, primary_key=True)
-    # account_id = models.ForeignKey(user, on_delete=models.CASCADE)
-    account_id = models.CharField(max_length = 20)
+    account_id = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length = 50)
     category = models.CharField(choices=routine_type, max_length = 10)
     goal = models.CharField(max_length = 200)
@@ -19,7 +17,7 @@ class Routine(models.Model):
     def __str__(self):
         return f"{self.account_id}_{self.goal}_{self.title}"
 
-class Routine_result(models.Model):
+class Result(models.Model):
     result_type = (('NOT', 'NOT'), ('TRY', 'TRY'), ('DONE', 'DONE'))
 
     routine_result_id = models.AutoField(unique=True, primary_key=True)
@@ -32,11 +30,11 @@ class Routine_result(models.Model):
     def __str__(self):
         return f"{self.routine_id}_{self.result}"
 
-class Routine_day(models.Model):
-    day = models.JSONField()
+class Day(models.Model):
+    day = models.CharField(max_length=100)
     routine_id = models.ForeignKey(Routine, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add = True)
     modified_at = models.DateTimeField(auto_now = True)
 
     def __str__(self):
-        return f"{self.routine_id}_{self.day}"
+        return f"{self.routine_id}{self.day}"
