@@ -1,18 +1,73 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from account.models import User
+import json
 
 # Create your tests here.
+client = Client() 
 class AccountTestClass(TestCase):
 
-    @classmethod
-    def setUpTestData(cls):
-        member = User.objects.create(name='byeonguk')
+    def test_signup(self):
+        # signup - success
+        data = {
+            "email"        : "test@test.com",
+            "name"         : "TEST",
+            "password"     : "1q2w3e4r!",
+        }
+        response = client.post('/signup', json.dumps(data), content_type = 'application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['message'], "회원가입 성공")
+        self.assertIsNotNone(response.json().get('token'))
 
-    def test_name_label(self):
-        first_member =Member.objects.get(name='byeonguk').first_name
-        self.assertEquals(first_name, 'first name')
+        # email is used
+        data = {
+            "email"        : "test@test.com", # used email
+            "name"         : "TEST",
+            "password"     : "1q2w3e4r!",
+        }
+        response = client.post('/signup', json.dumps(data), content_type = 'application/json')
+        self.assertEqual(response.status_code, 400)
 
-    def test_age_bigger_19(self):
-        age = Member.objects.get(name='byeonguk').age
-        check_age = age > 19
-        self.assertTrue(check_age)
+        # password not valid
+        data = {
+            "email"        : "test2@test.com",
+            "name"         : "TEST",
+            "password"     : "1q2w3e4r", # invalid pw
+        }
+        response = client.post('/signup', json.dumps(data), content_type = 'application/json')
+        self.assertEqual(response.status_code, 400)
+
+
+    def test_signin(self):
+        # user_preset
+        data = {
+            "email"        : "test@test.com",
+            "name"         : "TEST",
+            "password"     : "1q2w3e4r!",
+        }
+        client.post('/signup', json.dumps(data), content_type = 'application/json')
+
+        # login for email, password - success
+        data = {
+            "email"        : "test@test.com",
+            "password"     : "1q2w3e4r!",
+        }
+        response = client.post('/signin', json.dumps(data), content_type = 'application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['message'], "로그인 성공")
+        self.token = response.json()['token']
+        
+        # login for email, password - failed
+        data = {
+            "email"        : "test@test.com",
+            "password"     : "password", # invalid pw
+        }
+        response = client.post('/signin', json.dumps(data), content_type = 'application/json')
+        self.assertEqual(response.status_code, 400)
+
+        # token refresh
+        data = {
+            "refresh"      : f"{self.token['refresh']}",
+        }
+        response = client.post('/token/refresh', json.dumps(data), content_type = 'application/json')
+        self.assertEqual(response.status_code, 200)
+        

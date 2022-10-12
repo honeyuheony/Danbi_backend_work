@@ -125,7 +125,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'danbi_wink.pass_validators.CustomPasswordValidator',
+        'NAME': 'danbi_wink.validators.CustomPasswordValidator',
     },
 ]
 AUTH_USER_MODEL = 'account.User'

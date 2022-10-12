@@ -21,15 +21,18 @@ def signup(request):
             token = TokenObtainPairSerializer.get_token(user)
             refresh_token = str(token)
             access_token = str(token.access_token)
-            response = {
-                "email": serializer.data['email'],
-                "message": "register successs",
-                "token": {
-                    "access": access_token,
-                    "refresh": refresh_token,
+            response = Response(
+                {
+                    "email": serializer.data['email'],
+                    "message": "회원가입 성공",
+                    "token": {
+                        "access": access_token,
+                        "refresh": refresh_token,
+                    },
                 },
-            },
-            return Response(response, status=status.HTTP_200_OK)
+                status=status.HTTP_200_OK
+            )
+            return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
@@ -69,12 +72,6 @@ def signout(request):
             }, status=status.HTTP_202_ACCEPTED)
         response.delete_cookie('access')
         response.delete_cookie('refresh')
-            
-'''
-{
-"email": "kwh1019_@naver.com",
-"password": "Woowhen!140"
-}'''
         
             
         

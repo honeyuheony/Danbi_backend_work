@@ -1,17 +1,17 @@
-import string
 from django.core.exceptions import ValidationError
 
 def contains_special_charater(pw):
-    for c in pw:
-        if c in string.punctuation:
-            return True
-    return False
+    special_characters = "[~\!@#\$%\^&\*\(\)_\+{}\":;'\[\]]"
+    if not any(char in special_characters for char in pw):
+        return False
+    else:
+        return True
 
 def contains_number(pw):
-    for c in pw:
-        if c.isdigit():
-            return True
-    return False
+    if not any(char.isdigit() for char in pw):
+        return False
+    else:
+        return True
 
 
 class CustomPasswordValidator:
