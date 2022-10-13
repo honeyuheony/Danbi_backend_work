@@ -3,7 +3,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from django.shortcuts import get_object_or_404 as _get_object_or_404
 from django.http import Http404
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -41,11 +41,13 @@ def routineList(request):
             }
         }
         for r in routine:
-            result = Result.objects.get(routine_id=r.routine_id)
+            result = Result.objects.filter(Q(routine_id=r.routine_id) \
+                & Q(create_at=today))
+            result = result.result if result != None else 'NOT'
             iter =  {
                 "goal" : r.goal,
                 "id" : str(r.account_id),
-                "result" : result.result,
+                "result" : result,
                 "title" : r.title
             }
             res['data'].append(iter)
@@ -57,17 +59,15 @@ def routineList(request):
         request.data.pop('days')
         serializer = RoutineSerializer(data=request.data)
         if serializer.is_valid():
+            serializer.save()
             routine_id = Routine.objects.all().order_by('-created_at')[0].routine_id
             day_data = {
                 'day': str(days),
                 'routine_id': routine_id
             }
             day_serializer = RoutineDaySerializer(data=day_data)
-            result_serializer = RoutineResultSerializer(data={'routine_id': routine_id})
-            if day_serializer.is_valid() and result_serializer.is_valid():
-                serializer.save()
+            if day_serializer.is_valid():
                 day_serializer.save()
-                result_serializer.save()
                 return Response({
                     "data" : {
                         "routine_id": routine_id
@@ -83,21 +83,20 @@ def routineList(request):
 @transaction.atomic
 @api_view(['GET', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
-def routineDetail(request, routine_id):
+def routineDetail(request):
     if request.method == 'GET':
-        routine = RoutineSerializer(Routine.objects.get(routine_id=routine_id),
-            context={'request': request}).data
-        result = RoutineResultSerializer(Result.objects.get(routine_id=routine_id),
-                context={'request': request}).data
-        days = RoutineDaySerializer(Day.objects.get(routine_id=routine_id),
-                context={'request': request}).data
+        routine_id = request.query_params['routine_id']
+        routine = Routine.objects.get(routine_id=routine_id)
+        result = Result.objects.filter(routine_id=routine_id).order_by("-create_at")
+        result = result[0].result if result != [] else 'NOT'
+        days = Day.objects.get(routine_id=routine_id)
         res = {
             "data" : {
-                "goal" : routine['goal'],
-                "id" : routine['id'],
-                "result" : result['result'],
-                "title" : routine['title'],
-                "days": days['day']
+                "goal" : routine.goal,
+                "id" : routine.account_id,
+                "result" : result,
+                "title" : routine.title,
+                "days": days.day
             },
             "message": {
                 "msg": "Routine lookup was successful.",
@@ -132,8 +131,14 @@ def routineDetail(request, routine_id):
         
 
     elif request.method == 'DELETE':
+        routine_id = request.query_params['routine_id']
         routine = Routine.objects.get(routine_id=routine_id)
-        routine.delete()
+        routine.is_deleted = True
+        result = Result.objects.filter(routine_id=routine_id)
+        for r in result:
+            r.is_deleted = True
+            r.save()
+        routine.save()
         return Response({
                 "data" : {
                     "routine_id": routine_id
