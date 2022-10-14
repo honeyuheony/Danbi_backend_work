@@ -149,3 +149,44 @@ def routineDetail(request):
                 }
         })
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def routine_result(request):
+    if request.method == 'POST':
+        routine_id = request.query_params['routine_id']
+        result = request.query_params['result']
+        days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+        today = date.today()
+        day = date.weekday(today)
+        if Day.objects.exists(routine_id=routine_id, day__contains=days[day]):
+            if Result.objects.exists(routine_id=routine_id, create_at=today):
+                r = Result.objects.get(routine_id=routine_id, create_at=today)
+                r.result = result
+                r.save()
+            else:
+                result_data = {
+                    "routine_id": routine_id,
+                    "result": result,
+                }
+                result_serializer = RoutineResultSerializer(data = result_data)
+                if result_serializer.is_valid():
+                    result_serializer.save()
+                else:
+                    return Response(result_serializer.errors, status=400)
+            return Response({
+                "data" : {
+                    "routine_id": routine_id
+                },
+                "message": {
+                    "msg": "You have successfully created the routine_result.",
+                    "status": "ROUTINE_RESULT_CREATE_OK"
+                }
+            })
+        else:
+            res = {
+                "message": {
+                        "msg": "This routine cannot be recorded today.",
+                        "status": "ROUTINE_RESULT_CREATE_FAILED"
+                }
+            }
+            return Response(res, status=400)
