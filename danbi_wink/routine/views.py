@@ -151,8 +151,8 @@ def routineDetail(request, routine_id):
 @permission_classes([IsAuthenticated])
 def routine_result(request):
     if request.method == 'POST':
-        routine_id = request.query_params['routine_id']
-        result = request.query_params['result']
+        routine_id = request.data['routine_id']
+        result = request.data['result']
         days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
         today = date.today()
         day = date.weekday(today)
