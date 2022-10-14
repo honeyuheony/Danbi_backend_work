@@ -57,8 +57,14 @@ INSTALLED_APPS = [
     # rest-framework
     'rest_framework',
     'rest_framework_simplejwt',
+
+    # Docs
+    'drf_yasg',
+
+    # Apps
     'routine.apps.RoutineConfig',
     'account.apps.AccountConfig',
+
 ]
 
 MIDDLEWARE = [
