@@ -83,9 +83,8 @@ def routineList(request):
 @transaction.atomic
 @api_view(['GET', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
-def routineDetail(request):
+def routineDetail(request, routine_id):
     if request.method == 'GET':
-        routine_id = request.query_params['routine_id']
         routine = Routine.objects.get(routine_id=routine_id)
         result = Result.objects.filter(routine_id=routine_id).order_by("-create_at")
         result = result[0].result if result != [] else 'NOT'
@@ -131,7 +130,6 @@ def routineDetail(request):
         
 
     elif request.method == 'DELETE':
-        routine_id = request.query_params['routine_id']
         routine = Routine.objects.get(routine_id=routine_id)
         routine.is_deleted = True
         result = Result.objects.filter(routine_id=routine_id)

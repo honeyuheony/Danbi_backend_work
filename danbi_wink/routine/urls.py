@@ -8,5 +8,5 @@ from .views import routineList, routineDetail
 urlpatterns = [
     path('routine', routineList),
     path('routine/<int:routine_id>', routineDetail),
-
+    path('routine/result')
 ]
